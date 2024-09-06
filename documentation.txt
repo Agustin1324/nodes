@@ -1,0 +1,379 @@
+This is documentation for the nodes creation.
+
+
+Custom Nodes
+A powerful feature of React Flow is the ability to add custom nodes. Within your custom nodes you can render everything you want. You can define multiple source and target handles and render form inputs or charts for example. In this section we will implement a node with an input field that updates some text in another part of the application.
+
+Implementing the Custom Node
+A custom node is a React component that is wrapped to provide basic functionality like selecting or dragging. From the wrapper component we are passing props like the position or the data besides other props. Let's start to implement the TextUpdaterNode. We are using the Handle component to be able to connect our custom node with other nodes and add an input field to the node:
+
+import { useCallback } from 'react';
+import { Handle, Position } from '@xyflow/react';
+ 
+const handleStyle = { left: 10 };
+ 
+function TextUpdaterNode({ data }) {
+  const onChange = useCallback((evt) => {
+    console.log(evt.target.value);
+  }, []);
+ 
+  return (
+    <>
+      <Handle type="target" position={Position.Top} />
+      <div>
+        <label htmlFor="text">Text:</label>
+        <input id="text" name="text" onChange={onChange} className="nodrag" />
+      </div>
+      <Handle type="source" position={Position.Bottom} id="a" />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="b"
+        style={handleStyle}
+      />
+    </>
+  );
+}
+As you see we've added the class name "nodrag" to the input. This prevents dragging within the input field and lets us select text for example.
+
+
+Adding the Node Type
+You can add a new node type to React Flow by adding it to the nodeTypes prop. It's important that the nodeTypes are memoized or defined outside of the component. Otherwise React creates a new object on every render which leads to performance issues and bugs.
+
+const nodeTypes = useMemo(() => ({ textUpdater: TextUpdaterNode }), []);
+ 
+return <ReactFlow nodeTypes={nodeTypes} />;
+After defining your new node type, you can use it by using the type node option:
+
+const nodes = [
+  {
+    id: 'node-1',
+    type: 'textUpdater',
+    position: { x: 0, y: 0 },
+    data: { value: 123 },
+  },
+];
+
+
+
+Using Multiple Handles
+As you can see we added two source handles to the node so that it has two outputs. If you want to connect other nodes with these specific handles, the node id is not enough but you also need to pass the specific handle id. In this case one handle has the id "a" and the other one "b". Handle specific edges use the sourceHandle or targetHandle options that reference a handle within a node:
+
+const initialEdges = [
+  { id: 'edge-1', source: 'node-1', sourceHandle: 'a', target: 'node-2' },
+  { id: 'edge-2', source: 'node-1', sourceHandle: 'b', target: 'node-3' },
+];
+
+
+
+Custom Node Properties:
+
+When you implement a custom node it is wrapped in a component that enables basic functionality like selection and dragging. Your custom node receives the following props:
+
+export type NodeProps<NodeType extends Node = Node> = {
+  id: string;
+  data: Node['data'];
+  dragHandle?: boolean;
+  type?: string;
+  selected?: boolean;
+  isConnectable?: boolean;
+  zIndex?: number;
+  positionAbsoluteX: number;
+  positionAbsoluteY: number;
+  dragging: boolean;
+  targetPosition?: Position;
+  sourcePosition?: Position;
+};
+
+
+Usage
+import { useState } from 'react';
+import { NodeProps, Node } from '@xyflow/react';
+ 
+export type CounterNode = Node<
+  {
+    initialCount?: number;
+  },
+  'counter'
+>;
+ 
+export default function CounterNode(props: NodeProps<CounterNode>) {
+  const [count, setCount] = useState(props.data?.initialCount ?? 0);
+ 
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button className="nodrag" onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+    </div>
+  );
+}
+Remember to register your custom node by adding it to the nodeTypes prop of your <ReactFlow /> component.
+
+import { ReactFlow } from '@xyflow/react';
+import CounterNode from './CounterNode';
+ 
+const nodeTypes = {
+  counterNode: CounterNode,
+};
+ 
+export default function App() {
+  return <ReactFlow nodeTypes={nodeTypes} ... />
+}
+
+
+
+
+Fields
+Name	Type
+#id
+string;
+#data
+T;
+#dragHandle?
+string;
+A class name that can be applied to elements inside the node that allows those elements to act as drag handles, letting the user drag the node by clicking and dragging on those elements.
+#type
+string;
+#selected
+boolean;
+#isConnectable
+boolean;
+#zIndex
+number;
+#positionAbsoluteX
+number;
+#positionAbsoluteY
+number;
+#dragging
+boolean;
+#targetPosition
+Position;
+#sourcePosition
+Position;
+
+
+
+
+
+Notes
+If you have controls (like a slider) or other elements inside your custom node that should not drag the node you can add the class nodrag to those elements. This prevents the default drag behaviour as well as the default node selection behvaiour when elements with this class are clicked.
+
+export default function CustomNode(props: NodeProps) {
+  return (
+    <div>
+      <input className="nodrag" type="range" min={0} max={100} />
+    </div>
+  );
+}
+If you have scroll containers inside your custom node you can add the class nowheel to disable the default canvas pan behaviour when scrolling inside your custom nodes.
+
+export default function CustomNode(props: NodeProps) {
+  return (
+    <div className="nowheel" style={{ overflow: 'auto' }}>
+      <p>Scrollable content...</p>
+    </div>
+  );
+}
+When creating your own custom nodes, you will also need to remember to style them! Custom nodes have no default styles unlike the built-in nodes so you can use any styling method you like such as styled components or tailwind.
+
+
+
+
+Custom Edges:
+
+Custom edges
+Like custom nodes, parts of a custom edge in React Flow are just React components: that means you can render anything you want along an edge! This guide shows you how to implement a custom edge with some additional controls.
+
+A basic custom edge
+An edge isn't much use to us if it doesn't render a path between two connected nodes. These paths are always SVG-based and are typically rendered using the <BaseEdge /> component. To calculate the actual SVG path to render, React Flow comes with some handy utility functions:
+
+getBezierPath
+getSimpleBezierPath
+getSmoothStepPath
+getStraightPath
+To kick start our custom edge, we'll just render a straight path between the source and target.
+
+import { BaseEdge, getStraightPath } from '@xyflow/react';
+ 
+export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY }) {
+  const [edgePath] = getStraightPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+  });
+ 
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} />
+    </>
+  );
+}
+
+This gives us a straight edge that behaves the same as the default "straight" edge type. To use it, we also need to update the edgeTypes prop on the <ReactFlow /> component.
+
+It's important to define the edgeTypes object outside of the component or to use React's useMemo hook to prevent unnecessary re-renders. React Flow will show a warning in the console if you forget to do this.
+
+import ReactFlow from '@xyflow/react'
+import CustomEdge from './CustomEdge'
+ 
+ 
+const edgeTypes = {
+  'custom-edge': CustomEdge
+}
+ 
+export function Flow() {
+  return <ReactFlow edgeTypes={edgeTypes} ... />
+}
+
+Adding an edge label
+One of the more common uses for custom edges is rendering some controls or info along an edge's path. In React Flow we call that an edge label and unlike the edge path, edge labels can be any React component!
+
+To render a custom edge label we must wrap it in the <EdgeLabelRenderer /> component. This is necessary for performance reasons: the edge label renderer is a portal to a single container that all edge labels are rendered into.
+
+Let's add a button to our custom edge that can be used to delete the edge it's attached to:
+
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  getStraightPath,
+  useReactFlow,
+} from '@xyflow/react';
+ 
+export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY }) {
+  const { setEdges } = useReactFlow();
+  const [edgePath] = getStraightPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+  });
+ 
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} />
+      <EdgeLabelRenderer>
+        <button
+          onClick={() => setEdges((edges) => edges.filter((e) => e.id !== id))}
+        >
+          delete
+        </button>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
+
+If we try to use this edge now, we'll see that the button is rendered in the centre of the flow (it might be hidden behind "Node A"). Because of the edge label portal, we'll need to do some extra work to position the button ourselves.
+
+Fortunately, the path utils we've already seen can help us with this! Along with the SVG path to render, these functions also return the x and y coordinates of the path's midpoint. We can then use these coordinates to translate our custom edge label's into the right position!
+
+export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY }) {
+  const { setEdges } = useReactFlow();
+  const [edgePath, labelX, labelY] = getStraightPath({ ... });
+ 
+  return (
+    ...
+        <button
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+            pointerEvents: 'all',
+          }}
+          className="nodrag nopan"
+          onClick={() => {
+            setEdges((es) => es.filter((e) => e.id !== id));
+          }}
+        >
+    ...
+  );
+}
+To make sure our edge labels are interactive and not just for presentation, it is important to add pointer-events: all to the label's style. This will ensure that the label is clickable.
+
+And just like with interactive controls in custom nodes, we need to remember to add the nodrag and nopan classes to the label to stop mouse events from controlling the canvas.
+
+
+Custom Edge Properties:
+
+When you implement a custom edge it is wrapped in a component that enables some basic functionality. Your custom edge component receives the following props:
+
+export type EdgeProps<EdgeType extends Edge = Edge> = {
+  id: string;
+  animated: boolean;
+  data: EdgeType['data'];
+  style: React.CSSProperties;
+  selected: boolean;
+  source: string;
+  target: string;
+  sourceHandleId?: string | null;
+  targetHandleId?: string | null;
+  interactionWidth: number;
+  sourceX: number;
+  sourceY: number;
+  targetX: number;
+  targetY: number;
+  sourcePosition: Position;
+  targetPosition: Position;
+  label?: string | React.ReactNode;
+  labelStyle?: React.CSSProperties;
+  labelShowBg?: boolean;
+  labelBgStyle?: CSSProperties;
+  labelBgPadding?: [number, number];
+  labelBgBorderRadius?: number;
+  markerStart?: string;
+  markerEnd?: string;
+  pathOptions?: any;
+};
+Fields
+Name	Type
+#id
+string
+#animated?
+boolean
+#data
+T
+#style
+React.CSSProperties
+#selected
+boolean
+#source
+string
+#target
+string
+#sourceHandleId?
+string | null
+#targetHandleId?
+string | null
+#interactionWidth
+number
+#sourceX
+number
+#sourceY
+number
+#targetX
+number
+#targetY
+number
+#sourcePosition
+Position
+#targetPosition
+Position
+#label?
+string | React.ReactNode
+#labelStyle?
+React.CSSProperties
+#labelShowBg?
+boolean
+#labelBgStyle?
+React.CSSProperties
+#labelBgPadding?
+[number, number]
+#labelBgBorderRadius?
+number
+#markerStart?
+string
+#markerEnd?
+string
+#pathOptions?
+any
