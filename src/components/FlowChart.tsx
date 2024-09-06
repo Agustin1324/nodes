@@ -1,48 +1,74 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { ReactFlowProvider, Node, Edge, Background, Connection } from '@xyflow/react';
+import { ReactFlowProvider, Node, Edge, Background, Connection, applyNodeChanges, applyEdgeChanges, addEdge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import styles from '../app/page.module.css';
-import NodeCreator from './NodeCreator';
 
 const ReactFlow = dynamic(() => import('@xyflow/react').then((mod) => mod.ReactFlow), { ssr: false });
 
 const FlowChart: React.FC = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [aiPrompt, setAiPrompt] = useState('');
 
-  const onNodesChange = (changes: any) => {
+  const onNodesChange = useCallback((changes: any) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
-  };
+  }, []);
 
-  const onEdgesChange = (changes: any) => {
+  const onEdgesChange = useCallback((changes: any) => {
     setEdges((eds) => applyEdgeChanges(changes, eds));
-  };
+  }, []);
 
-  const onConnect = (connection: Connection) => {
+  const onConnect = useCallback((connection: Connection) => {
     setEdges((eds) => addEdge(connection, eds));
-  };
+  }, []);
 
-  const handleCreateNode = (nodeProperties: any) => {
+  const addNode = useCallback(() => {
     const newNode: Node = {
-      id: nodeProperties.id,
-      type: nodeProperties.type,
-      position: nodeProperties.position,
-      data: nodeProperties.data,
+      id: `node-${nodes.length + 1}`,
+      data: { label: `Node ${nodes.length + 1}` },
+      position: { x: Math.random() * 300, y: Math.random() * 300 },
     };
     setNodes((nds) => [...nds, newNode]);
+  }, [nodes]);
+
+  const handleAiGenerate = async () => {
+    // TODO: Implement AI generation logic here
+    console.log('AI Generate with prompt:', aiPrompt);
+    // For now, we'll just add a node with the AI prompt as the label
+    const newNode: Node = {
+      id: `ai-node-${nodes.length + 1}`,
+      data: { label: aiPrompt },
+      position: { x: Math.random() * 300, y: Math.random() * 300 },
+    };
+    setNodes((nds) => [...nds, newNode]);
+    setAiPrompt('');
   };
 
   return (
     <ReactFlowProvider>
       <div className={styles.flowChartContainer}>
         <div className={styles.leftPanel}>
-          <NodeCreator onCreateNode={handleCreateNode} />
+          <h1 className={styles.componentTitle}>Node Creator</h1>
+          <div className={styles.aiInputContainer}>
+            <input
+              type="text"
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="Enter AI prompt for node generation"
+              className={styles.aiInput}
+            />
+            <button onClick={handleAiGenerate} className={styles.aiGenerateButton}>
+              AI Generate
+            </button>
+          </div>
+          <button className={styles.addNodeButton} onClick={addNode}>
+            Add Node
+          </button>
         </div>
         <div className={styles.rightPanel}>
-          <div className={styles.componentTitle}>Flow Chart</div>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -50,9 +76,8 @@ const FlowChart: React.FC = () => {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             fitView
-            style={{ background: '#f0f0f0' }}
           >
-            <Background color="#aaa" gap={16} />
+            <Background />
           </ReactFlow>
         </div>
       </div>

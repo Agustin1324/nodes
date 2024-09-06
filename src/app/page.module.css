@@ -11,71 +11,69 @@
 }
 
 .leftPanel {
-  width: 30%;
+  width: 50%;
   padding: 20px;
   background-color: #f0f0f0;
   border-right: 2px solid #333;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .rightPanel {
-  width: 70%;
+  width: 50%;
   height: 100%;
-  position: relative;
 }
 
 .componentTitle {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 5px 10px;
-  border-radius: 4px;
+  font-size: 24px;
   font-weight: bold;
-  z-index: 10;
+  margin-bottom: 20px;
 }
 
-.nodeCreator {
+.aiInputContainer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  color: #333333;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
-.nodeCreator h3 {
-  margin-top: 0;
+.aiInput {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   margin-bottom: 10px;
 }
 
-.nodeCreator form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.nodeCreator label {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.nodeCreator input,
-.nodeCreator select {
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.nodeCreator button {
-  padding: 10px;
+.aiGenerateButton {
+  padding: 10px 20px;
+  font-size: 16px;
   background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.nodeCreator button:hover {
+.aiGenerateButton:hover {
   background-color: #45a049;
+}
+
+.addNodeButton {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #008CBA;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.addNodeButton:hover {
+  background-color: #007B9A;
 }
