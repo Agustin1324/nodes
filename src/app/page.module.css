@@ -20,6 +20,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  overflow-y: auto; /* Add scrolling to left panel if needed */
+  max-height: 100vh; /* Limit height to viewport height */
 }
 
 .rightPanel {
@@ -31,6 +33,7 @@
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 20px;
+  color: #333; /* Darker text color for the title */
 }
 
 .aiInputContainer {
@@ -46,6 +49,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-bottom: 10px;
+  color: #333; /* Darker text color for input */
 }
 
 .aiGenerateButton {
@@ -76,4 +80,32 @@
 
 .addNodeButton:hover {
   background-color: #007B9A;
+}
+
+.aiResponseContainer {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #ffffff; /* Changed to white for better contrast */
+  border: 1px solid #ccc; /* Added border for definition */
+  border-radius: 4px;
+  max-height: none; /* Remove max-height */
+  overflow-y: visible; /* Change to visible */
+}
+
+.aiResponseContainer h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: #333; /* Darker text color for the heading */
+}
+
+.aiResponseContainer p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #444; /* Slightly darker text color for better readability */
+  white-space: pre-wrap; /* Preserve line breaks and spaces */
+  word-wrap: break-word; /* Break long words if necessary */
 }
