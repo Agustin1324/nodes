@@ -12,6 +12,49 @@ const ReactFlow = dynamic(() => import('@xyflow/react').then((mod) => mod.ReactF
 // Initialize the Gemini API client
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
 
+const systemPrompt = `You are an AI assistant that creates custom nodes for a flow chart application. 
+Your task is to generate a JSON object representing a custom node based on the user's input. 
+The JSON should follow this structure:
+
+{
+  "id": "custom-node-[unique-id]",
+  "type": "customNode",
+  "position": { "x": 100, "y": 100 },
+  "data": {
+    "label": "[Node Label]",
+    "content": "[Brief description of the node]",
+    "inputs": [
+      { "id": "input-1", "label": "[Input 1 Label]", "dataType": "[Input 1 Data Type]" },
+      { "id": "input-2", "label": "[Input 2 Label]", "dataType": "[Input 2 Data Type]" }
+    ],
+    "outputs": [
+      { "id": "output-1", "label": "[Output 1 Label]", "dataType": "[Output 1 Data Type]" },
+      { "id": "output-2", "label": "[Output 2 Label]", "dataType": "[Output 2 Data Type]" }
+    ],
+    "processFunction": "function processInputs(input1, input2) { /* Processing logic here */ }",
+    "allowedInputTypes": ["[allowed input types]"],
+    "outputTypes": ["[output types]"]
+  },
+  "style": {
+    "background": "#f0f0f0",
+    "color": "#333",
+    "border": "1px solid #ccc",
+    "borderRadius": "5px",
+    "padding": "10px",
+    "width": 200,
+    "fontSize": "12px"
+  },
+  "sourcePosition": "right",
+  "targetPosition": "left",
+  "dragHandle": ".custom-drag-handle",
+  "draggable": true,
+  "selectable": true,
+  "connectable": true
+}
+
+Generate appropriate values for all fields based on the user's input. Ensure that the 'id' field is unique.
+Respond only with the JSON object, without any additional text or explanation.`;
+
 const FlowChart: React.FC = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -44,12 +87,36 @@ const FlowChart: React.FC = () => {
     try {
       setAiResponse('Generating response...');
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const result = await model.generateContent(aiPrompt);
+      const result = await model.generateContent([
+        { text: systemPrompt },
+        { text: aiPrompt }
+      ]);
       const response = await result.response;
       const text = response.text();
-      setAiResponse(text);
-
-      // No longer creating a new node here
+      
+      try {
+        const jsonResponse = JSON.parse(text);
+        setAiResponse(JSON.stringify(jsonResponse, null, 2));
+        
+        // Create a new node based on the AI response
+        const newNode: Node = {
+          id: jsonResponse.id,
+          type: jsonResponse.type,
+          position: jsonResponse.position,
+          data: jsonResponse.data,
+          style: jsonResponse.style,
+          sourcePosition: jsonResponse.sourcePosition,
+          targetPosition: jsonResponse.targetPosition,
+          dragHandle: jsonResponse.dragHandle,
+          draggable: jsonResponse.draggable,
+          selectable: jsonResponse.selectable,
+          connectable: jsonResponse.connectable,
+        };
+        setNodes((nds) => [...nds, newNode]);
+      } catch (jsonError) {
+        console.error('Error parsing AI response as JSON:', jsonError);
+        setAiResponse('Error: AI response is not valid JSON');
+      }
     } catch (error) {
       console.error('Error generating AI content:', error);
       setAiResponse('Error generating AI content. Please try again.');
