@@ -6,6 +6,9 @@ import { ReactFlowProvider, Node, Edge, Background, Connection, applyNodeChanges
 import '@xyflow/react/dist/style.css';
 import styles from '../app/page.module.css';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import InputNode from '@/app/nodes/InputNode';
+import DisplayNode from '@/app/nodes/DisplayNode';
+import UppercaseNode from '@/app/nodes/UppercaseNode';
 
 const ReactFlow = dynamic(() => import('@xyflow/react').then((mod) => mod.ReactFlow), { ssr: false });
 
@@ -77,6 +80,36 @@ const FlowChart: React.FC = () => {
     const newNode: Node = {
       id: `node-${nodes.length + 1}`,
       data: { label: `Node ${nodes.length + 1}` },
+      position: { x: Math.random() * 300, y: Math.random() * 300 },
+    };
+    setNodes((nds) => [...nds, newNode]);
+  }, [nodes]);
+
+  const addInputNode = useCallback(() => {
+    const newNode: Node = {
+      id: `input-node-${nodes.length + 1}`,
+      type: 'inputNode',
+      data: { label: `Input Node ${nodes.length + 1}` },
+      position: { x: Math.random() * 300, y: Math.random() * 300 },
+    };
+    setNodes((nds) => [...nds, newNode]);
+  }, [nodes]);
+
+  const addDisplayNode = useCallback(() => {
+    const newNode: Node = {
+      id: `display-node-${nodes.length + 1}`,
+      type: 'displayNode',
+      data: { label: `Display Node ${nodes.length + 1}` },
+      position: { x: Math.random() * 300, y: Math.random() * 300 },
+    };
+    setNodes((nds) => [...nds, newNode]);
+  }, [nodes]);
+
+  const addUppercaseNode = useCallback(() => {
+    const newNode: Node = {
+      id: `uppercase-node-${nodes.length + 1}`,
+      type: 'uppercaseNode',
+      data: { label: `Uppercase Node ${nodes.length + 1}` },
       position: { x: Math.random() * 300, y: Math.random() * 300 },
     };
     setNodes((nds) => [...nds, newNode]);
@@ -156,6 +189,15 @@ const FlowChart: React.FC = () => {
           <button className={styles.addNodeButton} onClick={addNode}>
             Add Node
           </button>
+          <button className={styles.addNodeButton} onClick={addInputNode}>
+            Add Input Node
+          </button>
+          <button className={styles.addNodeButton} onClick={addDisplayNode}>
+            Add Display Node
+          </button>
+          <button className={styles.addNodeButton} onClick={addUppercaseNode}>
+            Add Uppercase Node
+          </button>
         </div>
         <div className={styles.rightPanel}>
           <ReactFlow
@@ -164,7 +206,16 @@ const FlowChart: React.FC = () => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            nodeTypes={{ 
+              inputNode: InputNode,
+              displayNode: DisplayNode,
+              uppercaseNode: UppercaseNode
+            }}
             fitView
+            connectionMode="loose"  // This enables proximity connection
+            defaultEdgeOptions={{
+              type: 'smoothstep',  // This makes the connections look smoother
+            }}
           >
             <Background />
           </ReactFlow>
