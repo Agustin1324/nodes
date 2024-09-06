@@ -1,33 +1,60 @@
 'use client'
 
-import React from 'react';
+import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { ReactFlowProvider, Node, Edge, Background } from '@xyflow/react';
-import '@xyflow/react/dist/style.css'; // Add this import
+import { ReactFlowProvider, Node, Edge, Background, Connection } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import styles from '../app/page.module.css';
+import NodeCreator from './NodeCreator';
 
 const ReactFlow = dynamic(() => import('@xyflow/react').then((mod) => mod.ReactFlow), { ssr: false });
 
-const initialNodes: Node[] = [
-  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' }, style: { background: '#6ede87', color: '#333' } },
-  { id: '2', position: { x: 200, y: 100 }, data: { label: 'Node 2' }, style: { background: '#6865A5', color: '#fff' } },
-];
-
-const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', style: { stroke: '#FF6B6B', strokeWidth: 2 } },
-];
-
 const FlowChart: React.FC = () => {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+
+  const onNodesChange = (changes: any) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+  };
+
+  const onEdgesChange = (changes: any) => {
+    setEdges((eds) => applyEdgeChanges(changes, eds));
+  };
+
+  const onConnect = (connection: Connection) => {
+    setEdges((eds) => addEdge(connection, eds));
+  };
+
+  const handleCreateNode = (nodeProperties: any) => {
+    const newNode: Node = {
+      id: nodeProperties.id,
+      type: nodeProperties.type,
+      position: nodeProperties.position,
+      data: nodeProperties.data,
+    };
+    setNodes((nds) => [...nds, newNode]);
+  };
+
   return (
     <ReactFlowProvider>
-      <div style={{ width: '100%', height: '100%' }}>
-        <ReactFlow
-          nodes={initialNodes}
-          edges={initialEdges}
-          fitView
-          style={{ background: '#f0f0f0' }}
-        >
-          <Background color="#aaa" gap={16} />
-        </ReactFlow>
+      <div className={styles.flowChartContainer}>
+        <div className={styles.leftPanel}>
+          <NodeCreator onCreateNode={handleCreateNode} />
+        </div>
+        <div className={styles.rightPanel}>
+          <div className={styles.componentTitle}>Flow Chart</div>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            fitView
+            style={{ background: '#f0f0f0' }}
+          >
+            <Background color="#aaa" gap={16} />
+          </ReactFlow>
+        </div>
       </div>
     </ReactFlowProvider>
   );

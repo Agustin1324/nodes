@@ -4,18 +4,78 @@
   width: 100vw;
 }
 
-.leftHalf {
-  width: 50%;
+.flowChartContainer {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.leftPanel {
+  width: 30%;
   padding: 20px;
   background-color: #f0f0f0;
+  border-right: 2px solid #333;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
 }
 
-.rightHalf {
-  width: 50%;
+.rightPanel {
+  width: 70%;
   height: 100%;
+  position: relative;
 }
 
-/* Add this new style */
-.rightHalf > div {
-  height: 100%;
+.componentTitle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.nodeCreator {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #333333;
+}
+
+.nodeCreator h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.nodeCreator form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nodeCreator label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nodeCreator input,
+.nodeCreator select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.nodeCreator button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nodeCreator button:hover {
+  background-color: #45a049;
 }
